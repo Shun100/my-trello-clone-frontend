@@ -1,0 +1,6 @@
+/* アプリ全体に効くグローバルスタイル */
+
+/* Bootstrap5では、変数を使ってスタイルを上書く background-colorでは効かないので注意 */
+body {
+  --bs-body-bg: #c084fc;
+}
