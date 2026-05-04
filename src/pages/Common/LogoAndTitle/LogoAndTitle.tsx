@@ -1,6 +1,6 @@
-import './Logo.css';
+import './LogoAndTitle.css';
 
-function Logo() {
+function LogoAndTitle() {
   return (
     <div className="trello-logo">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -11,4 +11,4 @@ function Logo() {
   );
 }
 
-export default Logo;
+export default LogoAndTitle;
