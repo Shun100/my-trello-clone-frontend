@@ -1,0 +1,8 @@
+.add-list-btn {
+  background-color: rgba(0, 0, 0, 0.1); /* bg-primary相当 */
+  transition: background-color 0.2s ease;
+}
+
+.add-list-btn:hover {
+  background-color: rgba(0, 0, 0, 0.2); /* 少し明るく */
+}
