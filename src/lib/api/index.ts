@@ -1,0 +1,11 @@
+import axios from "axios";
+import { addAuthorizationHeader } from "./interceptors/request";
+
+const baseURL = import.meta.env.VITE_API_URL;
+const api = axios.create({ baseURL });
+api.defaults.headers.common['Content-Type'] = 'application/json';
+
+// Request送信前に差し込む処理を設定
+api.interceptors.request.use(addAuthorizationHeader);
+
+export default api;

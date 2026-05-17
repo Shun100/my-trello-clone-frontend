@@ -1,16 +1,27 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { authRepository } from '../../modules/auth/auth.repository';
 
 function Signup() {
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const navigate = useNavigate();
 
   const isFormFilled = name !== '' && email !== '' && password !== '';
 
-  // WIP
-  const signup = () => {};
+  /**
+   * 新規ユーザ登録
+   */
+  const signup = async () => {
+    const { user, token } = await authRepository.signup(name, email, password);
+    
+    console.log(user, token);
+
+    // 登録に成功したらHome画面に遷移
+    navigate('/home');
+  };
 
   return (
     <>
