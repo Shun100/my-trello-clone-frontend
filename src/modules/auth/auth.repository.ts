@@ -30,10 +30,14 @@ export const authRepository = {
   /**
    * 現在のユーザ情報取得
    * @returns { Promise<User> }
+   * @throws Error - ユーザ情報取得失敗
    */
   async getCurrentUser(): Promise<User> {
-    const result = await api.get('/current-user');
+    const result = await api.get('/auth/me');
     const { user } = result.data;
+    if (user === null) {
+      throw new Error('ユーザ情報が取得できませんでした');
+    }
     return new User(user);
-  }
+  },
 }

@@ -1,15 +1,32 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { authRepository } from '../../modules/auth/auth.repository';
+import { useSetAtom } from 'jotai';
+import { currentUserAtom } from '../../modules/auth/current-user.state';
+import { utils } from '../../modules/utils/utils';
 
 function Signin() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const setCurrentUser = useSetAtom(currentUserAtom);
+  const navigate = useNavigate();
 
   const isFormFilled = email !== '' && password !== '';
 
-  // WIP
-  const signin = () => {};
+  const signin = () => {
+    authRepository
+      .signin(email, password)
+      .then(res => {
+        setCurrentUser(res.user);
+        utils.saveToken(res.token);
+        navigate('/home');
+      })
+      .catch(err => {
+        console.error(err);
+        // TODO: 画面にログイン失敗メッセージを表示
+      });
+  }
 
   return (
     <>

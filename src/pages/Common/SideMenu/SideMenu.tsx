@@ -3,10 +3,11 @@ import './SideMenu.css';
 import Overlay from '../Overlay/Overlay';
 
 type SideBarProps = {
+  userName: string,
   close: () => void;
 }
 
-function SideMenu({ close }: SideBarProps) {
+function SideMenu({ userName, close }: SideBarProps) {
   return (
     <Overlay children={
       <div className="sidebar open">

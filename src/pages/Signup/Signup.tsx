@@ -2,11 +2,15 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authRepository } from '../../modules/auth/auth.repository';
+import { useSetAtom } from 'jotai';
+import { currentUserAtom } from '../../modules/auth/current-user.state';
+import { utils } from '../../modules/utils/utils';
 
 function Signup() {
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const setCurrentUser = useSetAtom(currentUserAtom);
   const navigate = useNavigate();
 
   const isFormFilled = name !== '' && email !== '' && password !== '';
@@ -14,13 +18,17 @@ function Signup() {
   /**
    * 新規ユーザ登録
    */
-  const signup = async () => {
-    const { user, token } = await authRepository.signup(name, email, password);
-    
-    console.log(user, token);
-
-    // 登録に成功したらHome画面に遷移
-    navigate('/home');
+  const signup = () => {
+    authRepository.signup(name, email, password)
+      .then(({ user, token }) => {
+        setCurrentUser(user);
+        utils.saveToken(token);
+        navigate('/home');
+      })
+      .catch(err =>  {
+        console.error(err);
+        // TODO: エラーメッセージ表示
+      });
   };
 
   return (
