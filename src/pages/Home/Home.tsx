@@ -24,7 +24,7 @@ function Home() {
         console.error(err);
         navigate('/signin');
       })
-  });
+  }, []);
 
   return (
     <>

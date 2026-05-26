@@ -7,7 +7,13 @@ import type { InternalAxiosRequestConfig } from "axios";
  */
 export const addAuthorizationHeader = (config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem('token');
-  if (token) {
+
+  // 新規登録・ログイン時はJWT認証無効
+  const isAuthApi =
+    config.url?.includes('/auth/signup') ||
+    config.url?.includes('/auth/signin');
+
+  if (token && !isAuthApi) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
