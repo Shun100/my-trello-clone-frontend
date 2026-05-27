@@ -23,7 +23,7 @@ function Home() {
       .catch(err => {
         console.error(err);
         navigate('/signin');
-      })
+      });
   }, []);
 
   return (
