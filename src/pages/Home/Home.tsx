@@ -8,22 +8,28 @@ import { currentUserAtom } from '../../modules/auth/current-user.state';
 import { authRepository } from '../../modules/auth/auth.repository';
 import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
+import { boardRepository } from '../../modules/board/board.repository';
+import type { Board } from '../../modules/board/board.entity';
 
 function Home() {
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
   const [showSideBar, setShowSideBar] = useState<boolean>(false);
+  const [board, setBoard] = useState<Board>();
   const navigate = useNavigate();
 
   useEffect(() => {
-    authRepository
-      .getCurrentUser()
-      .then(user => {
+    const init = async () => {
+      try {
+        const user = await authRepository.getCurrentUser();
         setCurrentUser(user);
-      })
-      .catch(err => {
-        console.error(err);
-        navigate('/signin');
-      });
+        const board = await boardRepository.fetch(user.id);
+        setBoard(board);
+      } catch (err) {
+          console.error(err);
+          navigate('/signin');
+      }};
+    
+    init();
   }, []);
 
   return (

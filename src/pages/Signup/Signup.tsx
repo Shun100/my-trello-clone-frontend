@@ -5,6 +5,7 @@ import { authRepository } from '../../modules/auth/auth.repository';
 import { useAtom } from 'jotai';
 import { currentUserAtom } from '../../modules/auth/current-user.state';
 import { utils } from '../../modules/utils/utils';
+import { boardRepository } from '../../modules/board/board.repository';
 
 function Signup() {
   const [name, setName] = useState<string>('');
@@ -18,20 +19,28 @@ function Signup() {
   /**
    * 新規ユーザ登録
    */
-  const signup = () => {
-    authRepository.signup(name, email, password)
-      .then(({ user, token }) => {
-        setCurrentUser(user);
-        utils.saveToken(token);
-        navigate('/home');
-      })
-      .catch(err =>  {
-        console.error(err);
-        // TODO: エラーメッセージ表示
-      });
+  const signup = async () => {
+
+    try {
+      // 新規ユーザ登録
+      const { user, token } = await authRepository.signup(name, email, password);
+      setCurrentUser(user);
+      utils.saveToken(token);
+
+      // 新規ボード作成
+      await boardRepository.create(user.id);
+
+      // Home画面に遷移
+      navigate('/home');
+
+    } catch (err) {
+      console.error(err);
+      // TODO: エラーメッセージ表示
+    }
   };
 
   useEffect(() => {
+    // ログイン済みか確認
     authRepository
     .getCurrentUser()
     .then(user => {
