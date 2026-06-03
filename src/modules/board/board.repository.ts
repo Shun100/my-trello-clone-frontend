@@ -21,6 +21,8 @@ export const boardRepository = {
    */
   async fetch(userId: string): Promise<Board> {
     const result = await api.get(`/boards/${userId}`);
-    return new Board(result.data);
+    const board = result.data;
+    console.log(JSON.stringify(board, null, 2));
+    return new Board(board);
   }
 }

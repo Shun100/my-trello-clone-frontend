@@ -24,9 +24,10 @@ function Home() {
         setCurrentUser(user);
         const board = await boardRepository.fetch(user.id);
         setBoard(board);
+        
       } catch (err) {
-          console.error(err);
-          navigate('/signin');
+        console.error(err);
+        navigate('/signin');
       }};
     
     init();
@@ -37,8 +38,9 @@ function Home() {
       <NavigationBar onClick={() => setShowSideBar(true)}/>
 
       <div className="d-flex gap-3 px-4">
-        <SortableList/>
-        <SortableList/>
+        {
+          board?.lanes.map(lane => <SortableList lane={lane} key={lane.id} />)
+        }
         <AddListButton/>
       </div>
 

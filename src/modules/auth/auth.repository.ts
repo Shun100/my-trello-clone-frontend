@@ -35,7 +35,8 @@ export const authRepository = {
    */
   async getCurrentUser(): Promise<User> {
     const result = await api.get('/auth/me');
-    const { user } = result.data;
+    const user = result.data;
+    console.table(user);
     if (user === null) {
       throw new Error('ユーザ情報が取得できませんでした');
     }
