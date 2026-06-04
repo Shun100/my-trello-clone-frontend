@@ -3,11 +3,11 @@ import SortableCard from '../SortableCard/SortableCard';
 import AddCardButton from '../AddCardButton/AddCardButton';
 import type { Lane } from '../../modules/lane/lane.entity';
 
-type SortableListProps = {
-  lane: Lane;
+type SortableLaneProps = {
+  lane: Lane,
 }
 
-function SortableList({ lane }: SortableListProps) {
+function SortableLane({ lane }: SortableLaneProps) {
   return (
     <>
       {
@@ -26,4 +26,4 @@ function SortableList({ lane }: SortableListProps) {
   );
 }
 
-export default SortableList;
+export default SortableLane;

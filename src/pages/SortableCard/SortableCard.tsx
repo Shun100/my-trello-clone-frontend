@@ -2,7 +2,7 @@ import type { Card } from '../../modules/card/card.entity';
 import './SortableCard.css';
 
 type SortableCardProps = {
-  card: Card;
+  card: Card,
 }
 
 function SortableCard({ card }: SortableCardProps) {

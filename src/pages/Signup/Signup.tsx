@@ -2,16 +2,15 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authRepository } from '../../modules/auth/auth.repository';
-import { useAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 import { currentUserAtom } from '../../modules/auth/current-user.state';
 import { utils } from '../../modules/utils/utils';
-import { boardRepository } from '../../modules/board/board.repository';
 
 function Signup() {
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
+  const setCurrentUser = useSetAtom(currentUserAtom);
   const navigate = useNavigate();
 
   const isFormFilled = name !== '' && email !== '' && password !== '';
@@ -26,9 +25,6 @@ function Signup() {
       const { user, token } = await authRepository.signup(name, email, password);
       setCurrentUser(user);
       utils.saveToken(token);
-
-      // 新規ボード作成
-      await boardRepository.create(user.id);
 
       // Home画面に遷移
       navigate('/home');

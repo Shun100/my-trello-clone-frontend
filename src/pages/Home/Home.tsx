@@ -2,7 +2,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import NavigationBar from '../Common/NavigationBar/NavigationBar';
 import SideMenu from '../Common/SideMenu/SideMenu';
 import { useEffect, useState } from 'react';
-import SortableList from '../SortableList/SortableList';
 import AddListButton from '../AddListButton/AddListButton';
 import { currentUserAtom } from '../../modules/auth/current-user.state';
 import { authRepository } from '../../modules/auth/auth.repository';
@@ -10,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAtom } from 'jotai';
 import { boardRepository } from '../../modules/board/board.repository';
 import type { Board } from '../../modules/board/board.entity';
+import SortableLane from '../SortableLane/SortableLane';
 
 function Home() {
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
@@ -39,7 +39,7 @@ function Home() {
 
       <div className="d-flex gap-3 px-4">
         {
-          board?.lanes.map(lane => <SortableList lane={lane} key={lane.id} />)
+          board?.lanes.map(lane => <SortableLane lane={lane} key={lane.id} />)
         }
         <AddListButton/>
       </div>
