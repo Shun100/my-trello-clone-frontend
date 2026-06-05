@@ -18,6 +18,14 @@ function SortableLane({ lane }: SortableLaneProps) {
   const [title, setTitle] = useState<string>(lane.title);
   const titleRef = useRef<HTMLHeadingElement>(null);
 
+  const updateTitle = async (newTitle: string) => {
+    await laneRepository.update([{
+      id: lane.id,
+      title: newTitle,
+      position: lane.position
+    }]);
+  }
+
   const deleteLane = async () => {
     await laneRepository.delete(lane.id);
 
@@ -66,7 +74,11 @@ function SortableLane({ lane }: SortableLaneProps) {
               className="mb-0 pb-1 lane-title"
               contentEditable
               suppressContentEditableWarning
-              onBlur={e => setTitle(e.target.textContent.trim())}
+              onBlur={e => {
+                const newTitle = e.target.textContent.trim();
+                setTitle(newTitle);
+                updateTitle(newTitle);
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault(); // 改行を防ぐ

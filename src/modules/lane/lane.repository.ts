@@ -9,6 +9,10 @@ export const laneRepository = {
     return new Lane(lane);
   },
 
+  async update(updateLaneRequests: { id: string, title: string, position: number}[]) {
+    await api.post('/lanes', updateLaneRequests);
+  },
+
   async delete(id: string): Promise<void> {
     await api.delete(`/lanes/${id}`);
   }
