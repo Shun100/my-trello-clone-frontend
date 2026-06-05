@@ -4,7 +4,9 @@ export class Lane {
   id!: string;
   title!: string;
   position!: number;
-  cards!: Card[];
-  createdAt!: Date;
-  updatedAt!: Date;
+  cards: Card[] = [];
+
+  constructor(data: Lane) {
+    Object.assign(this, data);
+  }
 }

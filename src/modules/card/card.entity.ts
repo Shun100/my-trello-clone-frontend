@@ -4,6 +4,4 @@ export class Card {
   position!: number;
   dueDate!: Date;
   status!: string;
-  cratedAt!: Date;
-  updatedAt!: Date;
 }

@@ -20,6 +20,8 @@ function Signin() {
       .then(res => {
         setCurrentUser(res.user);
         utils.saveToken(res.token);
+
+        // Home画面に遷移
         navigate('/home');
       })
       .catch(err => {

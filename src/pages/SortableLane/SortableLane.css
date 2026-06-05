@@ -1,0 +1,17 @@
+.lane-title {
+  cursor: text
+}
+
+.lane-title:focus {
+  outline: none;
+  border-bottom: 2px solid var(--bs-white)
+}
+
+.delete-button {
+  opacity: 0.6;
+}
+
+.delete-button:hover {
+  opacity: 0.8;
+  cursor: pointer;
+}
