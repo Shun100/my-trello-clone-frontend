@@ -8,6 +8,8 @@ import { laneRepository } from '../../modules/lane/lane.repository';
 import { useAtom } from 'jotai';
 import { boardAtom } from '../../modules/board/board.state';
 import { useEffect, useRef, useState } from 'react';
+import { Draggable } from '@hello-pangea/dnd';
+import AddCardModal from '../AddCardModal/AddCardModal';
 
 type SortableLaneProps = {
   lane: Lane,
@@ -17,6 +19,7 @@ function SortableLane({ lane }: SortableLaneProps) {
   const [board, setBoard] = useAtom(boardAtom);
   const [title, setTitle] = useState<string>(lane.title);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const [showAddCardModal, setShowAddCardModal] = useState<boolean>(false);
 
   const updateTitle = async (newTitle: string) => {
     await laneRepository.update([{
@@ -64,44 +67,61 @@ function SortableLane({ lane }: SortableLaneProps) {
 
   return (
     <>
-      {
-        <div className='d-flex justify-content-center pt-4'>
-          <div className='bg-body-secondary border p-4 rounded'
-                style={{ width: '100%', maxWidth: '450px' }}>
-            <div className="d-flex align-items-center justify-content-between">
+      <Draggable
+        draggableId={lane.id}
+        index={lane.position}
+      >
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            className='d-flex justify-content-center pt-4'
+          >
+            <div className='bg-body-secondary border p-4 rounded'
+                  style={{ width: '100%', maxWidth: '450px' }}>
+              <div className="d-flex align-items-center justify-content-between">
 
-            <h4
-              className="mb-0 pb-1 lane-title"
-              contentEditable
-              suppressContentEditableWarning
-              onBlur={e => {
-                const newTitle = e.target.textContent.trim();
-                setTitle(newTitle);
-                updateTitle(newTitle);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault(); // 改行を防ぐ
-                  e.currentTarget.blur(); // フォーカスを外す
-                }
-              }}
-              ref={titleRef}
-            >
-              {title}
-            </h4>
-              
-              <i
-                className="bi bi-trash delete-button"
-                onClick={deleteLane}
-              ></i>
+              <h4
+                className="mb-0 pb-1 lane-title"
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={e => {
+                  const newTitle = e.target.textContent.trim();
+                  setTitle(newTitle);
+                  updateTitle(newTitle);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault(); // 改行を防ぐ
+                    e.currentTarget.blur(); // フォーカスを外す
+                  }
+                }}
+                ref={titleRef}
+              >
+                {title}
+              </h4>
+                
+                <i
+                  className="bi bi-trash delete-button"
+                  onClick={deleteLane}
+                ></i>
+              </div>
+              {
+                lane.cards
+                  .sort((a, b) => a.position - b.position)
+                  .map(card => <SortableCard card={card} key={card.id} />)
+              }
+
+              {
+                showAddCardModal
+                  ? <AddCardModal laneId={lane.id} closeModal={() => setShowAddCardModal(false)}/>
+                  : <AddCardButton onClick={() => setShowAddCardModal(true)}/>
+              }
             </div>
-            {
-              lane.cards.map(card => <SortableCard card={card} key={card.id} />)
-            }
-            <AddCardButton/>
           </div>
-        </div>
-      }
+        )}
+      </Draggable>
     </>
   );
 }
