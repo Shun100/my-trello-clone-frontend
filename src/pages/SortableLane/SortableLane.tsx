@@ -108,9 +108,7 @@ function SortableLane({ lane }: SortableLaneProps) {
                 ></i>
               </div>
               {
-                lane.cards
-                  .sort((a, b) => a.position - b.position)
-                  .map(card => <SortableCard card={card} key={card.id} />)
+                lane.cards.map(card => <SortableCard card={card} key={card.id} />)
               }
 
               {

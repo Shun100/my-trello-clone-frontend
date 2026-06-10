@@ -14,7 +14,15 @@ function AddCardModal({ laneId, closeModal }: AddCardModalProps) {
 
   const createCard = async() => {
     if (board) {
-      const newCard = await cardRepository.create(title);
+      const cards = board.lanes
+        .find(lane => lane.id === laneId)!
+        .cards;
+
+      const position = cards.length > 0
+        ? cards.map(card => card.position).reduce((a, b) => Math.max(a, b)) + 1
+        : 0;
+
+      const newCard = await cardRepository.create(title, laneId, position);
 
       board.lanes.forEach(lane => {
         if (lane.id === laneId) {
@@ -41,7 +49,7 @@ function AddCardModal({ laneId, closeModal }: AddCardModalProps) {
         <div className="mt-2 d-flex align-items-center gap-2">
           <button
             className={ title !== '' ? 'btn btn-primary' : 'btn btn-secondary'}
-            onClick={createCard}
+            onClick={() => createCard().then(closeModal)}
           >
             カードを追加
           </button>
