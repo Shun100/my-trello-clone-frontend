@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { constantsAtom } from '../../modules/constants/constants';
 import { useAtomValue } from 'jotai';
 import type { Card } from '../../modules/card/card.entity';
+import { EditableTitle } from '../Common/EditableTitle/EditableTitle';
 
 type EditCardModalProps = {
   card: Card,
@@ -13,8 +14,10 @@ type EditCardModalProps = {
 }
 
 export function EditCardModal({ close, card }: EditCardModalProps) {
-  const [title, setTitle] = useState<string>(card.title);
-  const [status, setStatus] = useState<string>(card.status);
+  const [title, setTitle] = useState<string>(card.title ?? '');
+  const [status, setStatus] = useState<string>(card.status ?? '');
+  const [dueDate, setDueDate] = useState<string>(card.dueDate?.toISOString().slice(0, 10) ?? '');
+  const [description, setDescription] = useState<string>(card.description ?? '');
   const constants = useAtomValue(constantsAtom);
 
   return (
@@ -53,7 +56,9 @@ export function EditCardModal({ close, card }: EditCardModalProps) {
                   .map(s => <option value={s} key={s}>{s} </option>)
               }
             </select>
-            <h4 className='mb-0'>{title}</h4>
+
+            {/* タイトル */}
+            <EditableTitle title={title} setTitle={setTitle} onBlur={()=>{}} />
           </div>
           
           <div className='bg-light mt-3 p-3 rounded shadow-sm'>
@@ -62,12 +67,19 @@ export function EditCardModal({ close, card }: EditCardModalProps) {
               type='date'
               className='rounded border border-secondary-subtle p-2'
               placeholder='期限を設定'
+              value={dueDate}
+              onChange={e => setDueDate(e.target.value)}
             />
           </div>
           <div
             className='bg-light mt-3 p-3 rounded shadow-sm'>
             <p>説明</p>
-            <textarea className='w-100 rounded border border-secondary-subtle p-2' placeholder='説明を入力'/>
+            <textarea
+              className='w-100 rounded border border-secondary-subtle p-2'
+              placeholder='説明を入力'
+              value={description}
+              onChange={e => setDescription(e.target.value.trim())}
+            />
           </div>
         </Modal.Body>
       </Modal>

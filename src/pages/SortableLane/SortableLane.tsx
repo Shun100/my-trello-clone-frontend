@@ -7,9 +7,10 @@ import type { Lane } from '../../modules/lane/lane.entity';
 import { laneRepository } from '../../modules/lane/lane.repository';
 import { useAtom } from 'jotai';
 import { boardAtom } from '../../modules/board/board.state';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import AddCardModal from '../AddCardModal/AddCardModal';
+import { EditableTitle } from '../Common/EditableTitle/EditableTitle';
 
 type SortableLaneProps = {
   lane: Lane,
@@ -18,15 +19,23 @@ type SortableLaneProps = {
 function SortableLane({ lane }: SortableLaneProps) {
   const [board, setBoard] = useAtom(boardAtom);
   const [title, setTitle] = useState<string>(lane.title);
-  const titleRef = useRef<HTMLHeadingElement>(null);
   const [showAddCardModal, setShowAddCardModal] = useState<boolean>(false);
 
   const updateTitle = async (newTitle: string) => {
-    await laneRepository.update([{
-      id: lane.id,
-      title: newTitle,
-      position: lane.position
-    }]);
+    try {
+      // DB更新
+      await laneRepository.update([{
+        id: lane.id,
+        title: newTitle,
+        position: lane.position
+      }]);
+
+      // 画面更新
+      setTitle(newTitle);
+    
+    } catch (e) {
+      console.error(e); // TODO: エラーメッセージ表示
+    }
   }
 
   const deleteLane = async () => {
@@ -51,19 +60,6 @@ function SortableLane({ lane }: SortableLaneProps) {
 
   }
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (!titleRef.current?.contains(e.target as Node)) {
-        setTitle(titleRef.current?.textContent?.trim() ?? '');
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   return (
     <>
@@ -78,34 +74,24 @@ function SortableLane({ lane }: SortableLaneProps) {
             {...provided.dragHandleProps}
             className='d-flex justify-content-center pt-4'
           >
-            <div className='bg-body-secondary border p-4 rounded'
-                  style={{ width: '100%', maxWidth: '450px' }}>
+            <div
+              className='bg-body-secondary border p-4 rounded'
+              style={{ width: '100%', maxWidth: '450px' }}
+            >
+              
               <div className="d-flex align-items-center justify-content-between">
+              
+                {/* タイトル */}
+                <EditableTitle
+                  title={title}
+                  setTitle={setTitle}
+                  onBlur={e => updateTitle(e.target.textContent.trim())}
+                />
 
-              <h4
-                className="mb-0 pb-1 lane-title"
-                contentEditable
-                suppressContentEditableWarning
-                onBlur={e => {
-                  const newTitle = e.target.textContent.trim();
-                  setTitle(newTitle);
-                  updateTitle(newTitle);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault(); // 改行を防ぐ
-                    e.currentTarget.blur(); // フォーカスを外す
-                  }
-                }}
-                ref={titleRef}
-              >
-                {title}
-              </h4>
-                
                 <i
                   className="bi bi-trash delete-button"
                   onClick={deleteLane}
-                ></i>
+                />
               </div>
               {
                 lane.cards.map(card => <SortableCard card={card} key={card.id} />)
