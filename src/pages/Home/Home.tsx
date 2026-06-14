@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { currentUserAtom } from '../../modules/auth/current-user.state';
 import { authRepository } from '../../modules/auth/auth.repository';
 import { useNavigate } from 'react-router-dom';
-import { useAtom } from 'jotai';
+import { useAtom, useSetAtom } from 'jotai';
 import { boardRepository } from '../../modules/board/board.repository';
 import SortableLane from '../SortableLane/SortableLane';
 import AddLaneButton from '../AddLaneButton/AddLaneButton';
@@ -13,12 +13,15 @@ import { boardAtom } from '../../modules/board/board.state';
 import AddLaneModal from '../AddLaneModal/AddLaneModal';
 import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
 import { laneRepository } from '../../modules/lane/lane.repository';
+import { constantsAtom } from '../../modules/constants/constants';
+import constRepository from '../../modules/constants/constants.repository';
 
 function Home() {
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
   const [showSideBar, setShowSideBar] = useState<boolean>(false);
   const [board, setBoard] = useAtom(boardAtom);
   const [showAddLaneModal, setShowAddLaneModal] = useState<boolean>(false);
+  const setConstants = useSetAtom(constantsAtom);
   const navigate = useNavigate();
 
   const updatePosition = (result: DropResult) => {
@@ -47,6 +50,8 @@ function Home() {
         setCurrentUser(user);
         const board = await boardRepository.fetch(user.id);
         setBoard(board);
+        const constants = await constRepository.get();
+        setConstants(constants);
         
       } catch (err) {
         console.error(err);
