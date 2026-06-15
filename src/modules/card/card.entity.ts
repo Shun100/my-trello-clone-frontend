@@ -8,5 +8,6 @@ export class Card {
 
   constructor(data: Card) {
     Object.assign(this, data);
+    this.dueDate = new Date(data.dueDate);
   }
 }

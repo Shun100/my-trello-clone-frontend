@@ -28,7 +28,7 @@ function SortableCard({ card }: SortableCardProps) {
               style={{ width: '100%', maxWidth: '450px' }}
             >
               <h5>{card.title}</h5>
-              <span>🕐 期限を設定してください</span>
+              <span>🕐 {card.dueDate.toISOString().split('T')[0]}</span>
             </div>
           </div>
       }

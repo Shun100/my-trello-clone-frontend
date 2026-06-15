@@ -10,6 +10,7 @@ type AddCardModalProps = {
 
 function AddCardModal({ laneId, closeModal }: AddCardModalProps) {
   const [title, setTitle] = useState<string>('');
+  const [dueDate, setDueDate] = useState<string>('');
   const [board, setBoard] = useAtom(boardAtom);
 
   const createCard = async() => {
@@ -22,7 +23,7 @@ function AddCardModal({ laneId, closeModal }: AddCardModalProps) {
         ? cards.map(card => card.position).reduce((a, b) => Math.max(a, b)) + 1
         : 0;
 
-      const newCard = await cardRepository.create(title, laneId, position);
+      const newCard = await cardRepository.create(title, laneId, position, new Date(dueDate));
 
       board.lanes.forEach(lane => {
         if (lane.id === laneId) {
@@ -37,31 +38,52 @@ function AddCardModal({ laneId, closeModal }: AddCardModalProps) {
   return (
     <div
       className='d-flex justify-content-center align-items-center pt-4'
-      style={{ height: "150px", width: "250px" }}
     >
-      <div className="p-4 bg-secondary-subtle border rounded">
-        <input 
-          type="text" placeholder="タイトルを入力"
-          className="p-1 rounded"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-        />
-        <div className="mt-2 d-flex align-items-center gap-2">
-          <button
-            className={ title !== '' ? 'btn btn-primary' : 'btn btn-secondary'}
-            onClick={() => createCard().then(closeModal)}
-          >
-            カードを追加
-          </button>
+      <div className="d-flex flex-column gap-2 p-3 bg-secondary-subtle border rounded">
+
+        {/* 閉じるボタン */}
+        <div className="d-flex justify-content-end">
           <button
             type="button"
             className="btn-close"
             data-bs-dismiss="modal"
             aria-label="Close"
             onClick={closeModal}
+          />
+        </div>
+        
+        {/* タイトル */}
+        <div>
+          <input 
+            type="text" placeholder="タイトルを入力"
+            className="p-1 rounded border border-secondary-subtle"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+          />
+        </div>
+
+        {/* 期限 */}
+        <div className='bg-light p-3 rounded shadow-sm'>
+          <span className='me-2'>🕐</span>
+          <input
+            type='date'
+            className='rounded border border-secondary-subtle p-2'
+            placeholder='期限を設定'
+            value={dueDate}
+            onChange={e => setDueDate(e.target.value)}
+          />
+        </div>
+      
+        {/* Submitボタン */}
+        <div className="d-flex align-items-center justify-content-end gap-2 mt-2">
+          <button
+            className={ title !== '' && dueDate !== '' ? 'btn btn-primary' : 'btn btn-secondary'}
+            onClick={() => createCard().then(closeModal)}
           >
+            追加
           </button>
         </div>
+
       </div>
     </div>
   );

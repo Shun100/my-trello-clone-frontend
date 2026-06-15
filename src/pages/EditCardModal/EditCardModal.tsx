@@ -62,7 +62,7 @@ export function EditCardModal({ close, card }: EditCardModalProps) {
           </div>
           
           <div className='bg-light mt-3 p-3 rounded shadow-sm'>
-            <p>🕐 期限を設定してください</p>
+            <span className='me-2'>🕐</span>
             <input
               type='date'
               className='rounded border border-secondary-subtle p-2'
@@ -73,7 +73,6 @@ export function EditCardModal({ close, card }: EditCardModalProps) {
           </div>
           <div
             className='bg-light mt-3 p-3 rounded shadow-sm'>
-            <p>説明</p>
             <textarea
               className='w-100 rounded border border-secondary-subtle p-2'
               placeholder='説明を入力'

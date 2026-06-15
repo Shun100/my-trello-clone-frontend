@@ -1,4 +1,4 @@
-import type { Card } from "../card/card.entity";
+import { Card } from "../card/card.entity";
 
 export class Lane {
   id!: string;
@@ -8,5 +8,6 @@ export class Lane {
 
   constructor(data: Lane) {
     Object.assign(this, data);
+    this.cards = data.cards.map(card => new Card(card));
   }
 }

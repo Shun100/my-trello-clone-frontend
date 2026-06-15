@@ -1,4 +1,4 @@
-import type { Lane } from "../lane/lane.entity";
+import { Lane } from "../lane/lane.entity";
 
 export class Board {
   id!: string;
@@ -7,5 +7,6 @@ export class Board {
 
   constructor(data: Board) {
     Object.assign(this, data);
+    this.lanes = data.lanes.map(lane => new Lane(lane));
   }
 }
