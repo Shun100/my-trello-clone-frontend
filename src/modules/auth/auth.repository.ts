@@ -3,7 +3,13 @@ import { User } from "../users/user.entity";
 
 export const authRepository = {
   /**
-   * 新規ユーザ登録
+   * サインアップ
+   * <p>
+   *  内部ではaxiosを使っており、axiosはデフォルトで
+   *    - 2xx -> 成功
+   *    - 3xx ~ 5xx -> Promise reject
+   *  という動作をする
+   * </p>
    * @param { string } name 
    * @param { string } email 
    * @param { string } password 
@@ -17,7 +23,13 @@ export const authRepository = {
   },
 
   /**
-   * ログイン
+   * サインイン
+   * <p>
+   *  内部ではaxiosを使っており、axiosはデフォルトで
+   *    - 2xx -> 成功
+   *    - 3xx ~ 5xx -> Promise reject
+   *  という動作をする
+   * </p>
    * @param { string } email 
    * @param { string } password 
    * @returns { Promise<{ user: User, token: string }> }

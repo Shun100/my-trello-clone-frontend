@@ -94,7 +94,7 @@ function SortableLane({ lane }: SortableLaneProps) {
                 />
               </div>
               {
-                lane.cards.map(card => <SortableCard card={card} key={card.id} />)
+                lane.cards.map(card => <SortableCard laneId={lane.id} card={card} key={card.id} />)
               }
 
               {

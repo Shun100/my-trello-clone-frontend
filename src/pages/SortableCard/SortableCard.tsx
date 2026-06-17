@@ -4,16 +4,18 @@ import './SortableCard.css';
 import { EditCardModal } from '../EditCardModal/EditCardModal';
 
 type SortableCardProps = {
+  laneId: string,
   card: Card,
 }
 
-function SortableCard({ card }: SortableCardProps) {
+function SortableCard({ laneId, card }: SortableCardProps) {
   const [showEditCardModal, setShowEditCardModal] = useState<boolean>(false);
   
   return (
     <>
       { showEditCardModal
         ? <EditCardModal
+            laneId={laneId}
             card={card}
             close={() => setShowEditCardModal(false)}
           />
