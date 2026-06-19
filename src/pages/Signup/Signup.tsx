@@ -5,97 +5,84 @@ import { authRepository } from '../../modules/auth/auth.repository';
 import { useSetAtom } from 'jotai';
 import { currentUserAtom } from '../../modules/auth/current-user.state';
 import { utils } from '../../modules/utils/utils';
+import { Name } from '../Common/Form/FormItem/Name';
+import { Email } from '../Common/Form/FormItem/Email';
+import { Password } from '../Common/Form/FormItem/Password';
+import { SubmitButton } from '../Common/Form/FormItem/SubmitButton';
+import { ErrorMessage } from '../Common/Error/ErrorMessage';
+import { Form } from '../Common/Form/Form';
+import { UserAlreadyExistsError, InvalidFormError } from '../../errors/errors';
 
 function Signup() {
   const [name, setName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [errMsg, setErrMsg] = useState<string>('');
   const setCurrentUser = useSetAtom(currentUserAtom);
   const navigate = useNavigate();
 
   const isFormFilled = name !== '' && email !== '' && password !== '';
 
   /**
-   * 新規ユーザ登録
+   * サインアップ
    */
   const signup = async () => {
-
     try {
-      // 新規ユーザ登録
       const { user, token } = await authRepository.signup(name, email, password);
       setCurrentUser(user);
       utils.saveToken(token);
-
-      // Home画面に遷移
       navigate('/home');
-
+    
     } catch (err) {
       console.error(err);
-      // TODO: エラーメッセージ表示
+      if (err instanceof UserAlreadyExistsError) {
+        setErrMsg('そのメールアドレスは既に使われています');
+      } else if (err instanceof InvalidFormError) {
+        setErrMsg(err.message);
+      } else {
+        setErrMsg('ユーザ登録に失敗しました');
+      }
     }
   };
 
   useEffect(() => {
-    // ログイン済みか確認
     authRepository
     .getCurrentUser()
     .then(user => {
       setCurrentUser(user);
       navigate('/home');
     })
-    .catch(() => {
-      // 未ログインなら何もしない
+    .catch(err => {
+      console.error(err);
     });
   }, []);
 
   return (
     <>
       <div className='d-flex justify-content-center pt-4'>
-        <div className='bg-body-secondary border p-4 rounded'
-              style={{ width: '100%', maxWidth: '450px' }}>
+        <div
+          className='bg-body-secondary border p-4 rounded'
+          style={{ width: '100%', maxWidth: '450px' }}
+        >
 
           <div className='text-center'>
             <h3>Signup to continue</h3>
             <small className='text-muted'>Use your email to signup for free !</small>
           </div>
 
-          <div className='mt-3'>
-            <input
-              className='form-control bg-white' type='text' placeholder='Full'
-              value={name}
-              onChange={e => setName(e.target.value)}
-            />
-          </div>
+          <ErrorMessage errMsg={errMsg} />
 
-          <div className='mt-3'>
-            <input
-              className='form-control bg-white' type='email' placeholder='Email'
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className='mt-3'>
-            <input
-              className='form-control bg-white' type='password' placeholder='Password'
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-            />
-          </div>
-
-          <div className='mt-4'>
-            <button
-              className={`btn w-100 ${isFormFilled ? 'btn-primary' : 'btn-secondary'}`} 
-              disabled={!isFormFilled}
-              onClick={signup}
-            >
-              Continue
-            </button>
-          </div>
+          <Form allowSubmit={isFormFilled} onSubmit={signup}>
+            <Name name={name} setName={setName} setErrMsg={setErrMsg} />
+            <Email email={email} setEmail={setEmail} setErrMsg={setErrMsg} />
+            <Password password={password} setPassword={setPassword} setErrMsg={setErrMsg} />
+            <SubmitButton enabled={isFormFilled} onSubmit={signup}>Continue</SubmitButton>
+          </Form>
 
           <div className='mt-2 text-center'>
             ログインは <Link to='/signin'>こちら</Link>
           </div>
+
         </div>
       </div>
     </>

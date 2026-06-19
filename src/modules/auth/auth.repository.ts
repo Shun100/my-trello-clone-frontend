@@ -1,5 +1,7 @@
+import axios from "axios";
 import api from "../../lib/api";
 import { User } from "../users/user.entity";
+import { InvalidFormError, UserAlreadyExistsError } from "../../errors/errors";
 
 export const authRepository = {
   /**
@@ -16,10 +18,23 @@ export const authRepository = {
    * @returns { Promise<{ user: User, token: string }> }
    */
   async signup(name: string, email: string, password: string): Promise<{ user: User, token: string }> {
-    const result = await api.post('/auth/signup', { name, email, password });
-    console.log(result);
-    const { user, token } = result.data;
-    return { user: new User(user), token};
+    try {
+      const result = await api.post('/auth/signup', { name, email, password });
+      console.log(result);
+      const { user, token } = result.data;
+      return { user: new User(user), token};
+
+    } catch (err) {
+      console.error(err);
+      if (axios.isAxiosError(err) && err.response?.status === 409) {
+        throw new UserAlreadyExistsError(err);
+      } else if (axios.isAxiosError(err) && err.response?.status === 400) {
+        const message = err.response?.data?.errors?.[0]?.defaultMessage;
+        throw new InvalidFormError(message, err);
+      } else {
+        throw err;
+      }
+    }
   },
 
   /**

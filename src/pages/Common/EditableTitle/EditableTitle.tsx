@@ -1,3 +1,4 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { useEffect, useRef } from "react";
 
 type EditableTitleProps = {
