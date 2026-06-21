@@ -4,11 +4,12 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { useState } from 'react';
 import { constantsAtom } from '../../modules/constants/constants';
-import { useAtom, useAtomValue } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import type { Card } from '../../modules/card/card.entity';
 import { EditableTitle } from '../Common/EditableTitle/EditableTitle';
 import { cardRepository } from '../../modules/card/card.repository';
 import { boardAtom } from '../../modules/board/board.state';
+import { toastAtom } from '../../modules/toast/toast.state';
 
 type EditCardModalProps = {
   laneId: string,
@@ -23,13 +24,16 @@ export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
   const [description, setDescription] = useState<string>(card.description ?? '');
   const [board, setBoard] = useAtom(boardAtom);
   const constants = useAtomValue(constantsAtom);
+  const setShowToast = useSetAtom(toastAtom);
 
   const updateCard = async () => {
     cardRepository
       .update(card.id, title, status, dueDate, description)
       .then(close)
-      .catch(err => console.error(err));
-      // TODO: エラー時はトースト表示で失敗を通知する
+      .catch(err => {
+        console.error(err);
+        setShowToast(true);
+      });
   }
 
   const deleteCard = async () => {

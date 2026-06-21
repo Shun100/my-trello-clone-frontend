@@ -15,6 +15,8 @@ import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
 import { laneRepository } from '../../modules/lane/lane.repository';
 import { constantsAtom } from '../../modules/constants/constants';
 import constRepository from '../../modules/constants/constants.repository';
+import { toastAtom } from '../../modules/toast/toast.state';
+import { ErrorToast } from '../Common/Error/ErrorToast';
 
 function Home() {
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
@@ -22,6 +24,7 @@ function Home() {
   const [board, setBoard] = useAtom(boardAtom);
   const [showAddLaneModal, setShowAddLaneModal] = useState<boolean>(false);
   const setConstants = useSetAtom(constantsAtom);
+  const [showToast, setShowToast] = useAtom(toastAtom);
   const navigate = useNavigate();
 
   const updatePosition = (result: DropResult) => {
@@ -63,6 +66,8 @@ function Home() {
 
   return (
     <>
+      <ErrorToast />
+
       <NavigationBar onClick={() => setShowSideBar(true)}/>
 
       <DragDropContext
