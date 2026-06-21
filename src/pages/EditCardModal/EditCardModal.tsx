@@ -25,7 +25,11 @@ export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
   const constants = useAtomValue(constantsAtom);
 
   const updateCard = async () => {
-    await cardRepository.update(card.id, title, status, dueDate, description);
+    cardRepository
+      .update(card.id, title, status, dueDate, description)
+      .then(close)
+      .catch(err => console.error(err));
+      // TODO: エラー時はトースト表示で失敗を通知する
   }
 
   const deleteCard = async () => {
@@ -68,7 +72,7 @@ export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
       >
         <Modal.Header>
           {/* 保存ボタン */}
-          <Button variant="primary" onClick={() => updateCard().then(close)}>
+          <Button variant="primary" onClick={updateCard}>
             保存
           </Button>
 

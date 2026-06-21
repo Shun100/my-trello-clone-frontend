@@ -30,7 +30,7 @@ function Home() {
 
     const lanesAfterDnd = [...board.lanes];
 
-    // array.splice(start, deleteCount, itemToAdd1, itemToAdd2, ...)
+    // Usage: array.splice(start, deleteCount, itemToAdd1, itemToAdd2, ...)
     const [moved] = lanesAfterDnd.splice(result.source.index, 1);
     lanesAfterDnd.splice(result.destination.index, 0, moved);
     lanesAfterDnd.forEach((lane, index) => lane.position = index);

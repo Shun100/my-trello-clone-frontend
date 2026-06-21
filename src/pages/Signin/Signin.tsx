@@ -41,14 +41,11 @@ function Signin() {
   // ページ初回読み込み時に既にログイン済みかをチェックし、YesならHome画面に遷移する
   useEffect(() => {
     authRepository
-    .getCurrentUser()
-    .then(user => {
-      setCurrentUser(user);
-      navigate('/home');
-    })
-    .catch(err => {
-      console.error(err);
-    });
+      .getCurrentUser()
+      .then(user => {
+        setCurrentUser(user);
+        navigate('/home');
+      });
   }, []);
 
   return (

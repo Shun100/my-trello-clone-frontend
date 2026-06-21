@@ -47,14 +47,11 @@ function Signup() {
 
   useEffect(() => {
     authRepository
-    .getCurrentUser()
-    .then(user => {
-      setCurrentUser(user);
-      navigate('/home');
-    })
-    .catch(err => {
-      console.error(err);
-    });
+      .getCurrentUser()
+      .then(user => {
+        setCurrentUser(user);
+        navigate('/home');
+      });
   }, []);
 
   return (
