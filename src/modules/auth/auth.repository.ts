@@ -65,7 +65,7 @@ export const authRepository = {
     const user = result.data;
     console.table(user);
     if (user === null) {
-      throw new Error('ユーザ情報が取得できませんでした');
+      throw new Error('ユーザ情報を取得できませんでした');
     }
     return new User(user);
   },

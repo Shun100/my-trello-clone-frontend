@@ -51,7 +51,8 @@ function Signup() {
       .then(user => {
         setCurrentUser(user);
         navigate('/home');
-      });
+      })
+      .catch(err => console.log(err)); // エラー扱いしない
   }, []);
 
   return (
