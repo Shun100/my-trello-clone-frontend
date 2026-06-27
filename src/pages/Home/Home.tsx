@@ -27,12 +27,23 @@ function Home() {
   const [showToast, setShowToast] = useAtom(toastAtom);
   const navigate = useNavigate();
 
-  const updatePosition = (result: DropResult) => {
+  const updatePosition = async (result: DropResult) => {
     if (!board) { return; }
     if (!result.destination) { return; }
 
     const lanesAfterDnd = [...board.lanes];
 
+    // DB更新
+    try {
+      await laneRepository.update(lanesAfterDnd);
+    } catch (e) {
+      console.error(e);
+      setShowToast(true);
+      setBoard(board); // 画面ロールバック
+      return;
+    }
+
+    // 画面更新
     // Usage: array.splice(start, deleteCount, itemToAdd1, itemToAdd2, ...)
     const [moved] = lanesAfterDnd.splice(result.source.index, 1);
     lanesAfterDnd.splice(result.destination.index, 0, moved);
@@ -42,8 +53,6 @@ function Home() {
       ...board,
       lanes: lanesAfterDnd
     });
-
-    laneRepository.update(lanesAfterDnd);
   }
 
   useEffect(() => {

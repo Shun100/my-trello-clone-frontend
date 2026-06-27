@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { boardAtom } from "../../modules/board/board.state";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { cardRepository } from "../../modules/card/card.repository";
+import { toastAtom } from "../../modules/toast/toast.state";
 
 type AddCardModalProps = {
   laneId: string,
@@ -12,17 +13,24 @@ function AddCardModal({ laneId, closeModal }: AddCardModalProps) {
   const [title, setTitle] = useState<string>('');
   const [dueDate, setDueDate] = useState<string>('');
   const [board, setBoard] = useAtom(boardAtom);
+  const setShowToast = useSetAtom(toastAtom);
 
   const createCard = async() => {
-    if (board) {
-      const cards = board.lanes
-        .find(lane => lane.id === laneId)!
-        .cards;
+    if (!board) {
+      console.error('board not exits');
+      setShowToast(true);
+      return;
+    }
 
-      const position = cards.length > 0
-        ? cards.map(card => card.position).reduce((a, b) => Math.max(a, b)) + 1
-        : 0;
+    const cards = board.lanes
+      .find(lane => lane.id === laneId)!
+      .cards;
 
+    const position = cards.length > 0
+      ? cards.map(card => card.position).reduce((a, b) => Math.max(a, b)) + 1
+      : 0;
+
+    try {
       const newCard = await cardRepository.create(title, laneId, position, new Date(dueDate));
 
       board.lanes.forEach(lane => {
@@ -30,9 +38,14 @@ function AddCardModal({ laneId, closeModal }: AddCardModalProps) {
           lane.cards.push(newCard);
         }
       });
-
-      setBoard(board);
+    } catch (e) {
+      console.error(e);
+      setShowToast(true);
+      return;
     }
+    
+    // 画面更新
+    setBoard(board);
   }
 
   return (

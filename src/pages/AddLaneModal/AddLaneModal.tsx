@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { boardAtom } from "../../modules/board/board.state";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { laneRepository } from "../../modules/lane/lane.repository";
+import { toastAtom } from "../../modules/toast/toast.state";
 
 type AddLaneModalProps = {
   closeModal: () => void;
@@ -10,9 +11,16 @@ type AddLaneModalProps = {
 function AddLaneModal({ closeModal }: AddLaneModalProps) {
   const [title, setTitle] = useState<string>('');
   const [board, setBoard] = useAtom(boardAtom);
+  const setShowToast = useSetAtom(toastAtom);
 
   const addLane = async () => {
-    if (board) {
+    if (!board) {
+      console.error('board not exist');
+      setShowToast(true);
+      return;
+    }
+
+    try {
       const boardId = board.id;
       const position = Math.max(...board.lanes.map(lane => lane.position)) + 1;
 
@@ -23,6 +31,9 @@ function AddLaneModal({ closeModal }: AddLaneModalProps) {
         ...board,
         lanes: [...board.lanes, newLane],
       });
+    } catch (err) {
+      console.error(err);
+      setShowToast(true);
     }
   }
 

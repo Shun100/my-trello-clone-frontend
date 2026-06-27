@@ -9,7 +9,7 @@ export const laneRepository = {
     return new Lane(lane);
   },
 
-  async update(updateLaneRequests: { id: string, title: string, position: number}[]) {
+  async update(updateLaneRequests: { id: string, title: string, position: number }[]) {
     await api.post('/lanes', updateLaneRequests);
   },
 

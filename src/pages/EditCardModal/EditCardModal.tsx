@@ -37,35 +37,39 @@ export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
   }
 
   const deleteCard = async () => {
-    try {
-      if (board) {
-        // 画面から削除
-        const currentCards = board.lanes.find(lane => lane.id === laneId)!.cards
-        const updatedCards = currentCards
-          .filter(c => c.id !== card.id)
-          .map(c => ({
-          ...c,
-          position: c.position > card.position
-            ? c.position - 1
-            : c.position
-        }));
-
-        const currentLanes = board.lanes;
-        const updatedLanes = currentLanes.map(lane => lane.id === laneId ? { ...lane, cards: [...updatedCards] } : lane);
-
-        setBoard({
-          ...board,
-          lanes: [...updatedLanes]
-        });
-      }
-      
-
-      // DBから削除
-      await cardRepository.delete(card.id);
-    } catch (e) {
-      console.error(e);
-      // TODO: 画面のロールバック処理を実装
+    if (!board) {
+      console.error('board not exist');
+      setShowToast(true);
+      return;
     }
+  
+    // DBから削除
+    try {
+      await cardRepository.delete(card.id);
+    } catch (e){
+      console.error(e);
+      setShowToast(true);
+      return;
+    } 
+
+    // 画面から削除
+    const currentCards = board.lanes.find(lane => lane.id === laneId)!.cards
+    const updatedCards = currentCards
+      .filter(c => c.id !== card.id)
+      .map(c => ({
+      ...c,
+      position: c.position > card.position
+        ? c.position - 1
+        : c.position
+    }));
+
+    const currentLanes = board.lanes;
+    const updatedLanes = currentLanes.map(lane => lane.id === laneId ? { ...lane, cards: [...updatedCards] } : lane);
+
+    setBoard({
+      ...board,
+      lanes: [...updatedLanes]
+    });
   }
 
   return (

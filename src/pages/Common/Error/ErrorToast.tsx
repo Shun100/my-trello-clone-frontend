@@ -16,14 +16,14 @@ export function ErrorToast() {
           delay={3000}
           autohide
           bg=''
-          className='border-0 shadow'
+          className='border-0 shadow bg-danger-subtle rounded-4'
           style={{
             minWidth: '200px',
             borderLeft: '6px solid #dc3545'
           }}
         >
           <Toast.Body
-            className='d-flex align-items-center gap-3 bg-danger-subtle rounded-4' // danger-subtle: #f8d7da
+            className='d-flex align-items-center gap-3' // danger-subtle: #f8d7da
             style={{ height: '4em' }}
           >
             <div className='fs-4 text-danger flex-shrink-0'>
