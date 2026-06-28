@@ -5,23 +5,25 @@ import SortableCard from '../SortableCard/SortableCard';
 import AddCardButton from '../AddCardButton/AddCardButton';
 import type { Lane } from '../../modules/lane/lane.entity';
 import { laneRepository } from '../../modules/lane/lane.repository';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { boardAtom } from '../../modules/board/board.state';
 import { useState } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import AddCardModal from '../AddCardModal/AddCardModal';
 import { EditableTitle } from '../Common/EditableTitle/EditableTitle';
 import { toastAtom } from '../../modules/toast/toast.state';
+import { deleteLaneAtom } from '../../modules/lane/lane.state';
 
 type SortableLaneProps = {
   lane: Lane,
 }
 
 function SortableLane({ lane }: SortableLaneProps) {
-  const [board, setBoard] = useAtom(boardAtom);
+  const board = useAtomValue(boardAtom);
   const [title, setTitle] = useState<string>(lane.title);
   const [showAddCardModal, setShowAddCardModal] = useState<boolean>(false);
   const setShowToast = useSetAtom(toastAtom);
+  const deleteAtom = useSetAtom(deleteLaneAtom);
 
   // 先にDB更新 ⇒ 画面更新の順
   const updateTitle = async (newTitle: string) => {
@@ -43,12 +45,14 @@ function SortableLane({ lane }: SortableLaneProps) {
 
   // 削除は取り返しがつかない操作なので、先にDBから削除 ⇒ 画面から削除の順
   const deleteLane = async () => {
+    // Boardが存在しなければエラー
     if (!board) {
       console.error('board not exist');
       setShowToast(true);
       return;
     }
 
+    // DBから削除
     try {
       await laneRepository.delete(lane.id);
     } catch (e) {
@@ -56,23 +60,10 @@ function SortableLane({ lane }: SortableLaneProps) {
       setShowToast(true);
       return;
     }
-    
-    const currentLanes = board.lanes;
-    const updatedLanes = currentLanes
-      .filter(l => l.id !== lane.id)
-      .map(l => ({
-        ...l,
-        position: l.position > lane.position
-          ? l.position - 1
-          : l.position
-      }));
 
-    setBoard({
-      ...board,
-      lanes: [...updatedLanes],
-    });
+    // 画面から削除
+    deleteAtom(lane.id);
   }
-
 
   return (
     <>

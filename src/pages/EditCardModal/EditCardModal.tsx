@@ -4,12 +4,13 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { useState } from 'react';
 import { constantsAtom } from '../../modules/constants/constants';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue, useSetAtom } from 'jotai';
 import type { Card } from '../../modules/card/card.entity';
 import { EditableTitle } from '../Common/EditableTitle/EditableTitle';
 import { cardRepository } from '../../modules/card/card.repository';
 import { boardAtom } from '../../modules/board/board.state';
 import { toastAtom } from '../../modules/toast/toast.state';
+import { deleteCardAtom } from '../../modules/card/card.state';
 
 type EditCardModalProps = {
   laneId: string,
@@ -22,10 +23,12 @@ export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
   const [status, setStatus] = useState<string>(card.status ?? '');
   const [dueDate, setDueDate] = useState<string>(card.dueDate?.toISOString().slice(0, 10) ?? '');
   const [description, setDescription] = useState<string>(card.description ?? '');
-  const [board, setBoard] = useAtom(boardAtom);
+  const board = useAtomValue(boardAtom);
   const constants = useAtomValue(constantsAtom);
   const setShowToast = useSetAtom(toastAtom);
+  const deleteAtom = useSetAtom(deleteCardAtom);
 
+  // Card更新
   const updateCard = async () => {
     cardRepository
       .update(card.id, title, status, dueDate, description)
@@ -36,6 +39,7 @@ export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
       });
   }
 
+  // Card削除
   const deleteCard = async () => {
     if (!board) {
       console.error('board not exist');
@@ -50,26 +54,10 @@ export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
       console.error(e);
       setShowToast(true);
       return;
-    } 
+    }
 
     // 画面から削除
-    const currentCards = board.lanes.find(lane => lane.id === laneId)!.cards
-    const updatedCards = currentCards
-      .filter(c => c.id !== card.id)
-      .map(c => ({
-      ...c,
-      position: c.position > card.position
-        ? c.position - 1
-        : c.position
-    }));
-
-    const currentLanes = board.lanes;
-    const updatedLanes = currentLanes.map(lane => lane.id === laneId ? { ...lane, cards: [...updatedCards] } : lane);
-
-    setBoard({
-      ...board,
-      lanes: [...updatedLanes]
-    });
+    deleteAtom(laneId, card.id);
   }
 
   return (

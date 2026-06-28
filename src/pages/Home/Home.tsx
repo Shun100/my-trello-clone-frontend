@@ -17,6 +17,7 @@ import { constantsAtom } from '../../modules/constants/constants';
 import constRepository from '../../modules/constants/constants.repository';
 import { toastAtom } from '../../modules/toast/toast.state';
 import { ErrorToast } from '../Common/Error/ErrorToast';
+import { updateLanePositionAtom } from '../../modules/lane/lane.state';
 
 function Home() {
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
@@ -24,18 +25,17 @@ function Home() {
   const [board, setBoard] = useAtom(boardAtom);
   const [showAddLaneModal, setShowAddLaneModal] = useState<boolean>(false);
   const setConstants = useSetAtom(constantsAtom);
-  const [showToast, setShowToast] = useAtom(toastAtom);
+  const setShowToast = useSetAtom(toastAtom);
+  const updatePositionAtom = useSetAtom(updateLanePositionAtom);
   const navigate = useNavigate();
 
   const updatePosition = async (result: DropResult) => {
     if (!board) { return; }
     if (!result.destination) { return; }
 
-    const lanesAfterDnd = [...board.lanes];
-
     // DB更新
     try {
-      await laneRepository.update(lanesAfterDnd);
+      await laneRepository.update([...board.lanes]);
     } catch (e) {
       console.error(e);
       setShowToast(true);
@@ -43,16 +43,8 @@ function Home() {
       return;
     }
 
-    // 画面更新
-    // Usage: array.splice(start, deleteCount, itemToAdd1, itemToAdd2, ...)
-    const [moved] = lanesAfterDnd.splice(result.source.index, 1);
-    lanesAfterDnd.splice(result.destination.index, 0, moved);
-    lanesAfterDnd.forEach((lane, index) => lane.position = index);
-
-    setBoard({
-      ...board,
-      lanes: lanesAfterDnd
-    });
+    // 並び替え（画面）
+    updatePositionAtom(result.source.index, result.destination.index);
   }
 
   useEffect(() => {
