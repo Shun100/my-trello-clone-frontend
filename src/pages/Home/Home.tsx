@@ -18,6 +18,7 @@ import constRepository from '../../modules/constants/constants.repository';
 import { toastAtom } from '../../modules/toast/toast.state';
 import { ErrorToast } from '../Common/Error/ErrorToast';
 import { updateLanePositionAtom } from '../../modules/lane/lane.state';
+import { laneTask } from '../../modules/lane/lane.task';
 
 function Home() {
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
@@ -30,21 +31,18 @@ function Home() {
   const navigate = useNavigate();
 
   const updatePosition = async (result: DropResult) => {
-    if (!board) { return; }
-    if (!result.destination) { return; }
+    const { destination, source, type } = result;
 
-    // DB更新
-    try {
-      await laneRepository.update([...board.lanes]);
-    } catch (e) {
-      console.error(e);
-      setShowToast(true);
-      setBoard(board); // 画面ロールバック
-      return;
-    }
-
-    // 並び替え（画面）
-    updatePositionAtom(result.source.index, result.destination.index);
+    if (type === 'lane') {
+      laneTask
+        .updatePosition(board, source.index, destination.index, updatePositionAtom)
+        .catch(() => {
+          setShowToast(true);
+          setBoard(board); // 画面ロールバック
+        })
+    } else if (type === 'card') {
+      console.log(result);
+    }    
   }
 
   useEffect(() => {
@@ -67,29 +65,20 @@ function Home() {
 
   return (
     <>
+      {/* Toast通知 */}
       <ErrorToast />
 
       <NavigationBar onClick={() => setShowSideBar(true)}/>
-
-      <DragDropContext
-        onDragEnd={updatePosition}
-      >
-        <Droppable
-          droppableId='board' // TODO: board.idに書き直す
-          direction='horizontal'
-        >
-          {(provided, snapshot) => (
+      <DragDropContext onDragEnd={updatePosition}>
+        <Droppable droppableId='board' direction='horizontal' type="lane">
+          {provided => (
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
               className="d-flex gap-3 px-4"
             >
-              {
-                board?.lanes.map(lane => <SortableLane lane={lane} key={lane.id} />)
-              }
-
+              {board?.lanes.map(lane => <SortableLane lane={lane} key={lane.id} />)}
               {provided.placeholder}
-
               {
                 showAddLaneModal ?
                   <AddLaneModal closeModal={() => setShowAddLaneModal(false)}/> :
@@ -100,6 +89,7 @@ function Home() {
         </Droppable>
       </DragDropContext>
 
+      {/* SideBar */}
       {showSideBar &&
         <SideMenu
           userName={currentUser?.name ?? 'ゲスト'}

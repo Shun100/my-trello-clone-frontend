@@ -4,15 +4,15 @@ import './SortableLane.css';
 import SortableCard from '../SortableCard/SortableCard';
 import AddCardButton from '../AddCardButton/AddCardButton';
 import type { Lane } from '../../modules/lane/lane.entity';
-import { laneRepository } from '../../modules/lane/lane.repository';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { boardAtom } from '../../modules/board/board.state';
 import { useState } from 'react';
-import { Draggable } from '@hello-pangea/dnd';
+import { Draggable, Droppable } from '@hello-pangea/dnd';
 import AddCardModal from '../AddCardModal/AddCardModal';
 import { EditableTitle } from '../Common/EditableTitle/EditableTitle';
 import { toastAtom } from '../../modules/toast/toast.state';
 import { deleteLaneAtom } from '../../modules/lane/lane.state';
+import { laneTask } from '../../modules/lane/lane.task';
 
 type SortableLaneProps = {
   lane: Lane,
@@ -25,53 +25,18 @@ function SortableLane({ lane }: SortableLaneProps) {
   const setShowToast = useSetAtom(toastAtom);
   const deleteAtom = useSetAtom(deleteLaneAtom);
 
-  // 先にDB更新 ⇒ 画面更新の順
-  const updateTitle = async (newTitle: string) => {
-    try {
-      // DB更新
-      await laneRepository.update([{
-        id: lane.id,
-        title: newTitle,
-        position: lane.position
-      }]);
-    } catch (e) {
-      console.error(e);
-      setShowToast(true);
-      return;
-    }
+  const updateTitle = (title: string) => laneTask
+    .updateTitle(lane, title, setTitle)
+    .catch(() => setShowToast(true));
 
-    setTitle(newTitle);
-  }
-
-  // 削除は取り返しがつかない操作なので、先にDBから削除 ⇒ 画面から削除の順
-  const deleteLane = async () => {
-    // Boardが存在しなければエラー
-    if (!board) {
-      console.error('board not exist');
-      setShowToast(true);
-      return;
-    }
-
-    // DBから削除
-    try {
-      await laneRepository.delete(lane.id);
-    } catch (e) {
-      console.error(e);
-      setShowToast(true);
-      return;
-    }
-
-    // 画面から削除
-    deleteAtom(lane.id);
-  }
+  const deleteLane = () => laneTask
+    .delete(board, lane.id, deleteAtom)
+    .catch(() => setShowToast(true));
 
   return (
     <>
-      <Draggable
-        draggableId={lane.id}
-        index={lane.position}
-      >
-        {(provided, snapshot) => (
+      <Draggable draggableId={lane.id} index={lane.position}>
+        {provided=> (
           <div
             ref={provided.innerRef}
             {...provided.draggableProps}
@@ -82,25 +47,24 @@ function SortableLane({ lane }: SortableLaneProps) {
               className='bg-body-secondary border p-4 rounded'
               style={{ width: '100%', maxWidth: '450px' }}
             >
-              
               <div className="d-flex align-items-center justify-content-between">
-              
-                {/* タイトル */}
                 <EditableTitle
                   title={title}
                   setTitle={setTitle}
                   onBlur={e => updateTitle(e.target.textContent.trim())}
                 />
-
-                <i
-                  className="bi bi-trash delete-button"
-                  onClick={deleteLane}
-                />
+                <i className="bi bi-trash delete-button" onClick={deleteLane} />
               </div>
-              {
-                lane.cards.map(card => <SortableCard laneId={lane.id} card={card} key={card.id} />)
-              }
+              <Droppable droppableId={lane.id} type="card">
+                {provided => (
+                  <div ref={provided.innerRef} {...provided.droppableProps}>
+                    {lane.cards.map(card => <SortableCard laneId={lane.id} card={card} key={card.id} />)}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
 
+              {/* Card追加画面 */}
               {
                 showAddCardModal
                   ? <AddCardModal laneId={lane.id} closeModal={() => setShowAddCardModal(false)}/>
