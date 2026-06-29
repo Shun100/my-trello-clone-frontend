@@ -12,7 +12,6 @@ import AddLaneButton from '../AddLaneButton/AddLaneButton';
 import { boardAtom } from '../../modules/board/board.state';
 import AddLaneModal from '../AddLaneModal/AddLaneModal';
 import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
-import { laneRepository } from '../../modules/lane/lane.repository';
 import { constantsAtom } from '../../modules/constants/constants';
 import constRepository from '../../modules/constants/constants.repository';
 import { toastAtom } from '../../modules/toast/toast.state';
@@ -35,13 +34,14 @@ function Home() {
 
     if (type === 'lane') {
       laneTask
-        .updatePosition(board, source.index, destination.index, updatePositionAtom)
+        .updatePosition(board, source.index, destination?.index, updatePositionAtom)
         .catch(() => {
           setShowToast(true);
           setBoard(board); // 画面ロールバック
-        })
+        });
     } else if (type === 'card') {
-      console.log(result);
+      // TODO cardの並び替えロジックを実装
+      console.log(result.draggableId);
     }    
   }
 

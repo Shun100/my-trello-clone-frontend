@@ -8,9 +8,9 @@ import { useAtomValue, useSetAtom } from 'jotai';
 import type { Card } from '../../modules/card/card.entity';
 import { EditableTitle } from '../Common/EditableTitle/EditableTitle';
 import { cardRepository } from '../../modules/card/card.repository';
-import { boardAtom } from '../../modules/board/board.state';
 import { toastAtom } from '../../modules/toast/toast.state';
 import { deleteCardAtom } from '../../modules/card/card.state';
+import { cardTask } from '../../modules/card/card.task';
 
 type EditCardModalProps = {
   laneId: string,
@@ -23,7 +23,6 @@ export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
   const [status, setStatus] = useState<string>(card.status ?? '');
   const [dueDate, setDueDate] = useState<string>(card.dueDate?.toISOString().slice(0, 10) ?? '');
   const [description, setDescription] = useState<string>(card.description ?? '');
-  const board = useAtomValue(boardAtom);
   const constants = useAtomValue(constantsAtom);
   const setShowToast = useSetAtom(toastAtom);
   const deleteAtom = useSetAtom(deleteCardAtom);
@@ -33,45 +32,20 @@ export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
     cardRepository
       .update(card.id, title, status, dueDate, description)
       .then(close)
-      .catch(err => {
-        console.error(err);
-        setShowToast(true);
-      });
+      .catch(() => setShowToast(true));
   }
 
   // Card削除
-  const deleteCard = async () => {
-    if (!board) {
-      console.error('board not exist');
-      setShowToast(true);
-      return;
-    }
-  
-    // DBから削除
-    try {
-      await cardRepository.delete(card.id);
-    } catch (e){
-      console.error(e);
-      setShowToast(true);
-      return;
-    }
-
-    // 画面から削除
-    deleteAtom(laneId, card.id);
-  }
+  const deleteCard = () => cardTask
+    .delete(laneId, card.id, deleteAtom)
+    .catch(() => setShowToast(true));
 
   return (
     <>
-      <Modal
-        show={true}
-        contentClassName='bg-white'
-      >
+      <Modal show={true} contentClassName='bg-white'>
         <Modal.Header>
           {/* 保存ボタン */}
-          <Button variant="primary" onClick={updateCard}>
-            保存
-          </Button>
-
+          <Button variant="primary" onClick={updateCard}>保存</Button>
           <div className='ms-auto d-flex align-items-center'>
             {/* 削除ボタン */}
             <i
@@ -100,7 +74,8 @@ export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
               onChange={e => setStatus(e.target.value)}
             >
               {
-                constants?.cardStatus
+                constants
+                  ?.cardStatus
                   .map(s => <option value={s} key={s}>{s} </option>)
               }
             </select>
