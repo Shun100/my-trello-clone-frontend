@@ -1,4 +1,6 @@
 import type { Board } from "../board/board.entity";
+import { utils } from "../utils/utils";
+import type { Card } from "./card.entity";
 import { cardRepository } from "./card.repository"
 
 export const cardTask = {
@@ -6,19 +8,32 @@ export const cardTask = {
     board: Board | undefined,
     laneId: string,
     src: number,
-    dst: number
+    dst: number,
+    setBoard: (board: Board) => void
   ) {
-    if (!board) return;
+    const lane = board?.lanes.find(l => l.id === laneId);
 
-    const lane = board
-      .lanes
-      .find(l => l.id === laneId);
-    
-    // TODO: laneの中のsrc番目をdst番目に移動する
+    if (!board || !lane) return;
 
+    const currentCards = lane.cards;
+    const resortedCards = utils.resort<Card>(currentCards, src, dst, (card) => card.position);
+  
+    // 画面更新
+    const updatedLanes = [
+      ...board.lanes.filter(lane => lane.id !== laneId),
+      { ...lane, cards: resortedCards }
+    ];
+    setBoard({ ...board, lanes: updatedLanes });
+
+    // DB更新
+    await cardRepository.updatePosition(laneId, resortedCards);
+
+    // TODO: 更新失敗時にロールバックする
   },
   
-  async sortAcrossLane() {},
+  async sortAcrossLane() {
+    // TODO: 処理実装
+  },
 
   /**
    * カード削除

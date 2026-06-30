@@ -23,8 +23,12 @@ export const cardRepository = {
     await api.post(`/cards/update`, { id, title, status, dueDate, description });
   },
 
-  async updatePosition (updateCardRequests:
-    { cardId: string, laneId: string, position: number }[]): Promise<void> {
+  async updatePosition (laneId: string, cards: Card[]): Promise<void> {
+    const updateCardRequests = cards.map(card => ({
+      cardId: card.id,
+      laneId,
+      position: card.position
+    }));
     await api.post('/cards/update/position', updateCardRequests);
   },
 

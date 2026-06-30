@@ -58,7 +58,12 @@ function SortableLane({ lane }: SortableLaneProps) {
               <Droppable droppableId={lane.id} type="card">
                 {provided => (
                   <div ref={provided.innerRef} {...provided.droppableProps}>
-                    {lane.cards.map(card => <SortableCard laneId={lane.id} card={card} key={card.id} />)}
+                    {
+                      lane
+                        .cards
+                        .sort((a, b) => a.position - b.position)
+                        .map(card => <SortableCard laneId={lane.id} card={card} key={card.id} />)
+                    }
                     {provided.placeholder}
                   </div>
                 )}

@@ -18,6 +18,7 @@ import { toastAtom } from '../../modules/toast/toast.state';
 import { ErrorToast } from '../Common/Error/ErrorToast';
 import { updateLanePositionAtom } from '../../modules/lane/lane.state';
 import { laneTask } from '../../modules/lane/lane.task';
+import { cardTask } from '../../modules/card/card.task';
 
 function Home() {
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
@@ -29,8 +30,10 @@ function Home() {
   const updatePositionAtom = useSetAtom(updateLanePositionAtom);
   const navigate = useNavigate();
 
-  const updatePosition = async (result: DropResult) => {
+  const updatePosition = async (result: DropResult): Promise<void> => {
     const { destination, source, type } = result;
+
+    if (!result.destination) return;
 
     if (type === 'lane') {
       laneTask
@@ -40,8 +43,20 @@ function Home() {
           setBoard(board); // 画面ロールバック
         });
     } else if (type === 'card') {
-      // TODO cardの並び替えロジックを実装
-      console.log(result.draggableId);
+      console.log(JSON.stringify(result, null, 2));
+
+      const srcLaneId = result.source.droppableId;
+      const dstLaneId = result.destination?.droppableId;
+      const srcIndex = result.source.index;
+      const dstIndex = result.destination?.index;
+      
+      if (srcLaneId === dstLaneId) {
+        cardTask
+          .sortWithinLane(board, dstLaneId, srcIndex, dstIndex, setBoard)
+          .catch(() => setShowToast(true));
+      } else {
+        // Laneを跨る場合のソート処理を実装
+      }
     }    
   }
 
@@ -77,7 +92,12 @@ function Home() {
               {...provided.droppableProps}
               className="d-flex gap-3 px-4"
             >
-              {board?.lanes.map(lane => <SortableLane lane={lane} key={lane.id} />)}
+              {
+                board
+                  ?.lanes
+                  .sort((a, b) => a.position - b.position)
+                  .map(lane => <SortableLane lane={lane} key={lane.id} />)
+              }
               {provided.placeholder}
               {
                 showAddLaneModal ?
