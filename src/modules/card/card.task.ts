@@ -5,34 +5,80 @@ import { cardRepository } from "./card.repository"
 
 export const cardTask = {
   async sortWithinLane(
-    board: Board | undefined,
+    board: Board,
     laneId: string,
     src: number,
     dst: number,
     setBoard: (board: Board) => void
   ) {
-    const lane = board?.lanes.find(l => l.id === laneId);
+    const currentLanes = board.lanes;
+    const targetLane = currentLanes.find(lane => lane.id === laneId);
 
-    if (!board || !lane) return;
+    if (!targetLane) return;
 
-    const currentCards = lane.cards;
+    const currentCards = targetLane.cards;
     const resortedCards = utils.resort<Card>(currentCards, src, dst, (card) => card.position);
   
     // 画面更新
     const updatedLanes = [
       ...board.lanes.filter(lane => lane.id !== laneId),
-      { ...lane, cards: resortedCards }
+      { ...targetLane, cards: resortedCards }
     ];
     setBoard({ ...board, lanes: updatedLanes });
 
     // DB更新
-    await cardRepository.updatePosition(laneId, resortedCards);
-
-    // TODO: 更新失敗時にロールバックする
+    try {
+      await cardRepository.updatePosition(laneId, resortedCards);
+    } catch (e) {
+      console.error(e);
+      setBoard({ ...board, lanes: currentLanes }); // 画面ロールバック
+    }
   },
   
-  async sortAcrossLane() {
-    // TODO: 処理実装
+
+  // FIXME: to complicated
+  async sortAcrossLane(
+    board: Board,
+    srcLaneId: string,
+    srcPosition: number,
+    dstLaneId: string,
+    dstPosition: number,
+    setBoard: (board: Board) => void
+  ) {
+    const currentLanes = board.lanes;
+    const srcLane = currentLanes.find(lane => lane.id === srcLaneId);
+    const dstLane = currentLanes.find(lane => lane.id === dstLaneId);
+    const otherLanes = currentLanes.filter(lane => lane.id !== srcLaneId && lane.id !== dstLaneId);
+
+    if (!srcLane || !dstLane) return;
+
+    const srcCards = srcLane.cards;
+    const targetCard = {
+      ...srcCards.find(card => card.position === srcPosition)!,
+      position: dstPosition
+    };
+    const srcOtherCards = srcCards
+      .filter(card => card.position === srcPosition)
+      .map(card => ({
+        ...card,
+        position: card.position > srcPosition ? card.position - 1 : card.position
+      })
+    );
+    const dstCards = dstLane
+      .cards
+      .map(card => ({
+        ...card,
+        position: card.position >= dstPosition ? card.position + 1 : card.position
+      }));
+    dstCards.push(targetCard);
+
+    srcLane.cards = srcOtherCards;
+    dstLane.cards = [...dstCards, targetCard];
+    
+    setBoard({
+      ...board,
+      lanes: [...otherLanes, srcLane, dstLane]
+    });
   },
 
   /**

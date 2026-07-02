@@ -52,7 +52,7 @@ function Home() {
       
       if (srcLaneId === dstLaneId) {
         cardTask
-          .sortWithinLane(board, dstLaneId, srcIndex, dstIndex, setBoard)
+          .sortWithinLane(board!, dstLaneId, srcIndex, dstIndex, setBoard)
           .catch(() => setShowToast(true));
       } else {
         // Laneを跨る場合のソート処理を実装
