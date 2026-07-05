@@ -5,18 +5,16 @@ import { EditCardModal } from '../EditCardModal/EditCardModal';
 import { Draggable } from '@hello-pangea/dnd';
 
 type SortableCardProps = {
-  laneId: string,
   card: Card,
 }
 
-function SortableCard({ laneId, card }: SortableCardProps) {
+function SortableCard({ card }: SortableCardProps) {
   const [showEditCardModal, setShowEditCardModal] = useState<boolean>(false);
-  
+
   return (
     <>
       { showEditCardModal
         ? <EditCardModal
-            laneId={laneId}
             card={card}
             close={() => setShowEditCardModal(false)}
           />

@@ -1,61 +1,28 @@
 import { atom } from "jotai";
-import { boardAtom } from "../board/board.state";
+import type { Lane } from "./lane.entity";
 
-/**
- * Lane position更新（画面）
- * @param { number } srcPosition: 移動前の位置
- * @param { number } dstPosition: 移動後の位置
- */
-export const updateLanePositionAtom = atom(
-  null, // getterは持たないのでnull
-  (get, set, srcPosition: number, dstPosition: number) => {
-    const board = get(boardAtom);
-    if (!board) return;
-
-    const updatedLanes = [...board.lanes];
-
-    /**
-     * 並び替え
-     * Usage: array.splice(start, deleteCount, itemToAdd1, itemToAdd2, ...)
-     */
-    const [moved] = updatedLanes.splice(srcPosition, 1);
-    updatedLanes.splice(dstPosition, 0, moved);
-    updatedLanes.forEach((lane, index) => lane.position = index);
-
-    set(boardAtom, {
-      ...board,
-      lanes: updatedLanes
-    });
-  }
-);
+export const lanesAtom = atom<Lane[]>([]);
 
 /**
  * Lane削除（画面）
- * @param { string } deleteTargetLaneId
+ * @param { string } laneId
  */
 export const deleteLaneAtom = atom(
   null, // getterは持たないのでnull
-  (get, set, deleteTargetLaneId: string) => {
-    const board = get(boardAtom);
-    if (!board) return; // Boardが存在しなければ終了
-
-    const currentLanes = board.lanes;
-    const deleteTargetLane = board.lanes.find(lane => lane.id === deleteTargetLaneId);
-
-    if (!deleteTargetLane) return; // 削除対象のLaneが存在しなければ終了
+  (get, set, laneId: string) => {
+    const currentLanes = get(lanesAtom);
+    
+    const position = currentLanes
+      .find(lane => lane.id === laneId)!
+      .position;
 
     const updatedLanes = currentLanes
-      .filter(l => l.id !== deleteTargetLaneId)
-      .map(l => ({
-        ...l,
-        position: l.position > deleteTargetLane.position
-          ? l.position - 1
-          : l.position
+      .filter(lane => lane.id !== laneId)
+      .map(lane => ({
+        ...lane,
+        position: lane.position - (lane.position > position ? 1 : 0)
       }));
     
-    set(boardAtom, {
-      ...board,
-      lanes: updatedLanes,
-    });
+    set(lanesAtom, updatedLanes);
   }
 );

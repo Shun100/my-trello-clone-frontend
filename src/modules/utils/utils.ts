@@ -1,7 +1,10 @@
 export const utils = {
   saveToken: (token: string) => localStorage.setItem('token', token),
+
   loadToken: () => localStorage.getItem('token'),
+  
   deleteToken: () => localStorage.removeItem('token'),
+  
   resort<T>(
     elements: T[],
     src: number,
@@ -9,6 +12,7 @@ export const utils = {
     getPosition: (elem: T) => number): T[] {
 
     const delta = Math.sign(src - dst);
+    
     const resorted = elements.map(elem =>
       getPosition(elem) === src
         ? { ...elem, position: dst }

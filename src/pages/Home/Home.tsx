@@ -16,46 +16,57 @@ import { constantsAtom } from '../../modules/constants/constants';
 import constRepository from '../../modules/constants/constants.repository';
 import { toastAtom } from '../../modules/toast/toast.state';
 import { ErrorToast } from '../Common/Error/ErrorToast';
-import { updateLanePositionAtom } from '../../modules/lane/lane.state';
 import { laneTask } from '../../modules/lane/lane.task';
 import { cardTask } from '../../modules/card/card.task';
+import { lanesAtom } from '../../modules/lane/lane.state';
+import { cardsAtom } from '../../modules/card/card.state';
 
 function Home() {
   const [currentUser, setCurrentUser] = useAtom(currentUserAtom);
   const [showSideBar, setShowSideBar] = useState<boolean>(false);
-  const [board, setBoard] = useAtom(boardAtom);
+  const setBoard = useSetAtom(boardAtom);
+  const [lanes, setLanes] = useAtom(lanesAtom);
+  const [cards, setCards] = useAtom(cardsAtom);
   const [showAddLaneModal, setShowAddLaneModal] = useState<boolean>(false);
   const setConstants = useSetAtom(constantsAtom);
   const setShowToast = useSetAtom(toastAtom);
-  const updatePositionAtom = useSetAtom(updateLanePositionAtom);
   const navigate = useNavigate();
 
-  const updatePosition = async (result: DropResult): Promise<void> => {
+  const updatePosition = (result: DropResult) => {
+    console.log(JSON.stringify(result, null, 2));
+
     const { destination, source, type } = result;
 
-    if (!result.destination) return;
+    if (!destination) {
+      setShowToast(true);
+      return;
+    }
 
     if (type === 'lane') {
-      laneTask
-        .updatePosition(board, source.index, destination?.index, updatePositionAtom)
-        .catch(() => {
-          setShowToast(true);
-          setBoard(board); // 画面ロールバック
-        });
-    } else if (type === 'card') {
-      console.log(JSON.stringify(result, null, 2));
+      laneTask.updatePosition({
+        params: { lanes, src: source.index, dst: destination!.index },
+        updateView: setLanes,
+        onError: () => setShowToast(true)
+      });
 
+    } else if (type === 'card') {
       const srcLaneId = result.source.droppableId;
-      const dstLaneId = result.destination?.droppableId;
-      const srcIndex = result.source.index;
-      const dstIndex = result.destination?.index;
+      const dstLaneId = result.destination!.droppableId;
+      const srcPosition = result.source.index;
+      const dstPosition = result.destination!.index;
       
       if (srcLaneId === dstLaneId) {
-        cardTask
-          .sortWithinLane(board!, dstLaneId, srcIndex, dstIndex, setBoard)
-          .catch(() => setShowToast(true));
+        cardTask.sortWithinLane({
+          params: { cards, laneId: srcLaneId, srcPosition, dstPosition },
+          updateView: setCards,
+          onError: () => setShowToast(true) 
+        });
       } else {
-        // Laneを跨る場合のソート処理を実装
+        cardTask.sortAcrossLane({
+          params: { cards, srcLaneId, dstLaneId, srcPosition, dstPosition },
+          updateView: setCards,
+          onError: () => setShowToast(true)
+        });
       }
     }    
   }
@@ -65,8 +76,12 @@ function Home() {
       try {
         const user = await authRepository.getCurrentUser();
         setCurrentUser(user);
-        const board = await boardRepository.fetch(user.id);
+
+        const { board, lanes, cards } = await boardRepository.fetch(user.id);
         setBoard(board);
+        setLanes(lanes);
+        setCards(cards);
+
         const constants = await constRepository.get();
         setConstants(constants);
         
@@ -80,8 +95,7 @@ function Home() {
 
   return (
     <>
-      {/* Toast通知 */}
-      <ErrorToast />
+      <ErrorToast /> {/* Toast通知 */}
 
       <NavigationBar onClick={() => setShowSideBar(true)}/>
       <DragDropContext onDragEnd={updatePosition}>
@@ -93,8 +107,7 @@ function Home() {
               className="d-flex gap-3 px-4"
             >
               {
-                board
-                  ?.lanes
+                lanes
                   .sort((a, b) => a.position - b.position)
                   .map(lane => <SortableLane lane={lane} key={lane.id} />)
               }

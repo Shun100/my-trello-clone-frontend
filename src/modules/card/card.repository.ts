@@ -9,28 +9,22 @@ export const cardRepository = {
     dueDate: Date
   ): Promise<Card> {
     const result = await api.post('/cards/create', { title, laneId, position, dueDate });
+    console.log(JSON.stringify(result, null, 2));
     const card = result.data;
     return new Card(card);
   },
 
-  async update (
-    id: string,
-    title: string,
-    status: string,
-    dueDate: string,
-    description: string
-  ): Promise<void> {
-    await api.post(`/cards/update`, { id, title, status, dueDate, description });
+  async update (card: Card): Promise<void> {
+    const data = {
+      id:card.id,
+      title:card.title,
+      status: card.status,
+      dueDate: card.dueDate,
+      description: card.description
+    };
+    console.log(data);
+    await api.post(`/cards/update`, data);
   },
-
-  // async updatePosition (laneId: string, cards: Card[]): Promise<void> {
-  //   const updateCardRequests = cards.map(card => ({
-  //     cardId: card.id,
-  //     laneId,
-  //     position: card.position
-  //   }));
-  //   await api.post('/cards/update/position', updateCardRequests);
-  // },
 
   async updatePosition(updatePositionRequests: {
     cardId: string,

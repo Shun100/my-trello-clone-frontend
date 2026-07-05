@@ -3,6 +3,7 @@ import { Lane } from "./lane.entity";
 
 export const laneRepository = {
   async create(boardId: string, title: string, position: number): Promise<Lane> {
+    console.table({ boardId, title, position });
     const result = await api.post('/lane/create', { boardId, title, position });
     const lane = result.data;
     console.table(lane);

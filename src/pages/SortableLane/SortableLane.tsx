@@ -5,33 +5,38 @@ import SortableCard from '../SortableCard/SortableCard';
 import AddCardButton from '../AddCardButton/AddCardButton';
 import type { Lane } from '../../modules/lane/lane.entity';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { boardAtom } from '../../modules/board/board.state';
 import { useState } from 'react';
 import { Draggable, Droppable } from '@hello-pangea/dnd';
 import AddCardModal from '../AddCardModal/AddCardModal';
 import { EditableTitle } from '../Common/EditableTitle/EditableTitle';
 import { toastAtom } from '../../modules/toast/toast.state';
-import { deleteLaneAtom } from '../../modules/lane/lane.state';
 import { laneTask } from '../../modules/lane/lane.task';
+import { cardsAtom } from '../../modules/card/card.state';
+import { deleteLaneAtom } from '../../modules/lane/lane.state';
 
 type SortableLaneProps = {
   lane: Lane,
 }
 
 function SortableLane({ lane }: SortableLaneProps) {
-  const board = useAtomValue(boardAtom);
+  const cards = useAtomValue(cardsAtom);
   const [title, setTitle] = useState<string>(lane.title);
+  const deleteAtom = useSetAtom(deleteLaneAtom);
   const [showAddCardModal, setShowAddCardModal] = useState<boolean>(false);
   const setShowToast = useSetAtom(toastAtom);
-  const deleteAtom = useSetAtom(deleteLaneAtom);
 
-  const updateTitle = (title: string) => laneTask
-    .updateTitle(lane, title, setTitle)
-    .catch(() => setShowToast(true));
+  const updateTitle = (title: string) => laneTask.updateTitle(
+    lane,
+    title,
+    setTitle,
+    () => setShowToast(true)
+  );
 
-  const deleteLane = () => laneTask
-    .delete(board, lane.id, deleteAtom)
-    .catch(() => setShowToast(true));
+  const deleteLane = () => laneTask.delete(
+    lane.id,
+    deleteAtom,
+    () => setShowToast(true)
+  );
 
   return (
     <>
@@ -59,10 +64,10 @@ function SortableLane({ lane }: SortableLaneProps) {
                 {provided => (
                   <div ref={provided.innerRef} {...provided.droppableProps}>
                     {
-                      lane
-                        .cards
+                      cards
+                        .filter(card => card.laneId === lane.id)
                         .sort((a, b) => a.position - b.position)
-                        .map(card => <SortableCard laneId={lane.id} card={card} key={card.id} />)
+                        .map(card => <SortableCard card={card} key={card.id} />)
                     }
                     {provided.placeholder}
                   </div>

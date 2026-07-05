@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { boardAtom } from "../../modules/board/board.state";
 import { useAtom, useSetAtom } from "jotai";
-import { cardRepository } from "../../modules/card/card.repository";
 import { toastAtom } from "../../modules/toast/toast.state";
+import { cardsAtom } from "../../modules/card/card.state";
+import { cardTask } from "../../modules/card/card.task";
+import type { Card } from "../../modules/card/card.entity";
 
 type AddCardModalProps = {
   laneId: string,
@@ -12,40 +13,18 @@ type AddCardModalProps = {
 function AddCardModal({ laneId, closeModal }: AddCardModalProps) {
   const [title, setTitle] = useState<string>('');
   const [dueDate, setDueDate] = useState<string>('');
-  const [board, setBoard] = useAtom(boardAtom);
+  const [allCards, setCards] = useAtom(cardsAtom);
   const setShowToast = useSetAtom(toastAtom);
 
-  const createCard = async() => {
-    if (!board) {
-      console.error('board not exits');
-      setShowToast(true);
-      return;
-    }
+  const createCard = () => {
+    const cards = allCards.filter(card => card.laneId === laneId);
 
-    const cards = board.lanes
-      .find(lane => lane.id === laneId)!
-      .cards;
-
-    const position = cards.length > 0
-      ? cards.map(card => card.position).reduce((a, b) => Math.max(a, b)) + 1
-      : 0;
-
-    try {
-      const newCard = await cardRepository.create(title, laneId, position, new Date(dueDate));
-
-      board.lanes.forEach(lane => {
-        if (lane.id === laneId) {
-          lane.cards.push(newCard);
-        }
-      });
-    } catch (e) {
-      console.error(e);
-      setShowToast(true);
-      return;
-    }
-    
-    // 画面更新
-    setBoard(board);
+    cardTask.create({
+      params: { laneId, title, dueDate, cards },
+      updateView: (newCard: Card) => setCards([...allCards, newCard]),
+      onSuccess: closeModal,
+      onError: () => setShowToast(true)
+    });
   }
 
   return (
@@ -91,7 +70,7 @@ function AddCardModal({ laneId, closeModal }: AddCardModalProps) {
         <div className="d-flex align-items-center justify-content-end gap-2 mt-2">
           <button
             className={ title !== '' && dueDate !== '' ? 'btn btn-primary' : 'btn btn-secondary'}
-            onClick={() => createCard().then(closeModal)}
+            onClick={createCard}
           >
             追加
           </button>

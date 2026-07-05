@@ -1,13 +1,23 @@
-import { Card } from "../card/card.entity";
+export interface LaneData {
+  id: string;
+  boardId: string;
+  title: string;
+  position: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
-export class Lane {
+export class Lane implements LaneData {
   id!: string;
+  boardId!: string;
   title!: string;
   position!: number;
-  cards: Card[] = [];
+  createdAt!: Date;
+  updatedAt!: Date;
 
-  constructor(data: Lane) {
+  constructor(data: LaneData) {
     Object.assign(this, data);
-    this.cards = data.cards.map(card => new Card(card));
+    this.createdAt = new Date(data.createdAt);
+    this.updatedAt = new Date(data.updatedAt);
   }
 }

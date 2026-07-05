@@ -1,4 +1,5 @@
 import type { Board } from "../board/board.entity";
+import { utils } from "../utils/utils";
 import type { Lane } from "./lane.entity";
 import { laneRepository } from "./lane.repository";
 
@@ -9,19 +10,19 @@ export const laneTask = {
    * @param title 
    * @param setTitleState 
    */
-  async updateTitle(
+  updateTitle(
     lane: Lane,
     title: string,
-    setTitleState: (title: string) => void
+    setTitleState: (title: string) => void,
+    onError: () => void
   ) {
     // DB更新
-    await laneRepository.update([{
-      id: lane.id,
-      title,
-      position: lane.position
-    }]);
-
-    setTitleState(title); // 画面更新
+    laneRepository.update([{ ...lane, title }])
+      .then(() => setTitleState(title))
+      .catch(e => {
+        console.error(e);
+        onError();
+      });
   },
 
   /**
@@ -31,17 +32,28 @@ export const laneTask = {
    * @param dst 
    * @param updatePositionAtom 
    */
-  async updatePosition(
-    board: Board | undefined,
-    src: number,
-    dst: number | undefined,
-    updatePositionAtom: (src: number, dst: number) => void
-  ) {
-    if (!board) throw new Error('board is undefined');
-    if (!dst) throw new Error('invalid destination');
+  updatePosition(args: {
+    params: { lanes: Lane[], src: number, dst: number },
+    updateView: (lanes: Lane[]) => void,
+    onSuccess?: () => void,
+    onError?: () => void
+  }) {
+    const updatedLanes = utils.resort<Lane>(
+      args.params.lanes,
+      args.params.src,
+      args.params.dst,
+      lane => lane.position
+    );
 
-    await laneRepository.update([...board.lanes]); // DB更新
-    updatePositionAtom(src, dst); // 画面更新
+    args.updateView(updatedLanes); // 先に画面更新
+
+    laneRepository.update([...updatedLanes]) // 次にDB更新
+      .then(args.onSuccess)
+      .catch(e => {
+        console.error(e);
+        args.updateView(args.params.lanes); // 更新失敗時は画面ロールバック
+        args.onError?.();
+      });
   },
 
   /**
@@ -50,14 +62,16 @@ export const laneTask = {
    * @param laneId 
    * @param deleteAtom 
    */
-  async delete(
-    board: Board | undefined,
+  delete(
     laneId: string,
-    deleteAtom: (laneId: string) => void
+    deleteAtom: (laneId: string) => void,
+    onError: () => void
   ) {
-    if (!board) throw new Error('board does not exist');
-
-    await laneRepository.delete(laneId); // DBから削除
-    deleteAtom(laneId); // 画面から削除
+    laneRepository.delete(laneId)
+      .then(() => deleteAtom(laneId))
+      .catch(e => {
+        console.error(e);
+        onError();
+      });
   },
 }

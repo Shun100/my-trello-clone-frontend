@@ -1,43 +1,41 @@
 import { atom } from "jotai";
-import { boardAtom } from "../board/board.state";
+import type { Card } from "./card.entity";
+
+export const cardsAtom = atom<Card[]>([]);
+
+/**
+ * Card更新 (画面)
+ * @param { Card } card
+ */
+export const updateCardAtom = atom(
+  null,
+  (get, set, card: Card) => {
+    const current = get(cardsAtom);
+    const updated = [...current.filter(c => c.id !== card.id), card];
+
+    set(cardsAtom, updated);
+  }
+);
 
 /**
  * Card削除（画面）
- * @param { string } laneId
- * @param { string } targetCardId
+ * @param { string } cardId
  */
 export const deleteCardAtom = atom(
   null,
-  (get, set, laneId: string, targetCardId: string) => {
-    const board = get(boardAtom);
-    if (!board) return;
+  (get, set, cardId: string) => {
+    const allCards = get(cardsAtom);
+    const card = allCards.find(card => card.id === cardId)!;
 
-    const lane = board
-      .lanes
-      .find(lane => lane.id === laneId);
-    if (!lane) return;
+    const updatedCards = allCards
+      .filter(c => c.laneId === card.laneId && c.id !== cardId)
+      .map(c => ({
+        ...c,
+        position: c.position > card.position
+          ? c.position - 1
+          : c.position
+      }));
 
-    const targetCard = lane
-      .cards
-      .find(card => card.id === targetCardId);
-    if (!targetCard) return;
-
-    const updatedCards = lane
-      .cards
-      .filter(card => card.id !== targetCardId)
-      .map(card => ({
-      ...card,
-      position: card.position > targetCard.position
-        ? card.position - 1
-        : card.position
-    }));
-
-    const updatedLanes = board.lanes
-      .map(lane => lane.id === laneId ? { ...lane, cards: [...updatedCards] } : lane);
-
-    set(boardAtom, {
-      ...board,
-      lanes: [...updatedLanes]
-    });
+    set(cardsAtom, updatedCards);
   }
 );

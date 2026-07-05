@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { boardAtom } from "../../modules/board/board.state";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { laneRepository } from "../../modules/lane/lane.repository";
 import { toastAtom } from "../../modules/toast/toast.state";
+import { lanesAtom } from "../../modules/lane/lane.state";
+import { boardAtom } from "../../modules/board/board.state";
 
 type AddLaneModalProps = {
   closeModal: () => void;
@@ -10,27 +11,21 @@ type AddLaneModalProps = {
 
 function AddLaneModal({ closeModal }: AddLaneModalProps) {
   const [title, setTitle] = useState<string>('');
-  const [board, setBoard] = useAtom(boardAtom);
+  const board = useAtomValue(boardAtom);
+  const [lanes, setLanes] = useAtom(lanesAtom);
   const setShowToast = useSetAtom(toastAtom);
 
   const addLane = async () => {
-    if (!board) {
-      console.error('board not exist');
-      setShowToast(true);
-      return;
-    }
-
     try {
-      const boardId = board.id;
-      const position = Math.max(...board.lanes.map(lane => lane.position)) + 1;
+      const boardId = board!.id;
+      const position = Math.max(-1, ...lanes.map(lane => lane.position)) + 1;
 
+      // DB登録
       const newLane = await laneRepository.create(boardId, title, position);
 
-      // 同じオブジェクトをセットしても再レンダリングされない可能性があるため、新しくオブジェクトを作る
-      setBoard({
-        ...board,
-        lanes: [...board.lanes, newLane],
-      });
+      // 画面に追加
+      setLanes([...lanes, newLane]);
+
     } catch (err) {
       console.error(err);
       setShowToast(true);

@@ -7,38 +7,47 @@ import { constantsAtom } from '../../modules/constants/constants';
 import { useAtomValue, useSetAtom } from 'jotai';
 import type { Card } from '../../modules/card/card.entity';
 import { EditableTitle } from '../Common/EditableTitle/EditableTitle';
-import { cardRepository } from '../../modules/card/card.repository';
 import { toastAtom } from '../../modules/toast/toast.state';
-import { deleteCardAtom } from '../../modules/card/card.state';
 import { cardTask } from '../../modules/card/card.task';
+import { deleteCardAtom, updateCardAtom } from '../../modules/card/card.state';
 
 type EditCardModalProps = {
-  laneId: string,
   card: Card,
   close: () => void,
 }
 
-export function EditCardModal({ laneId, close, card }: EditCardModalProps) {
+export function EditCardModal({ card, close }: EditCardModalProps) {
   const [title, setTitle] = useState<string>(card.title ?? '');
   const [status, setStatus] = useState<string>(card.status ?? '');
   const [dueDate, setDueDate] = useState<string>(card.dueDate?.toISOString().slice(0, 10) ?? '');
   const [description, setDescription] = useState<string>(card.description ?? '');
+  const updateAtom = useSetAtom(updateCardAtom);
+  const deleteAtom = useSetAtom(deleteCardAtom);
   const constants = useAtomValue(constantsAtom);
   const setShowToast = useSetAtom(toastAtom);
-  const deleteAtom = useSetAtom(deleteCardAtom);
 
-  // Card更新
-  const updateCard = async () => {
-    cardRepository
-      .update(card.id, title, status, dueDate, description)
-      .then(close)
-      .catch(() => setShowToast(true));
+  const updateCard = () => {
+    const updated = {
+      ...card,
+      title,
+      status,
+      dueDate: new Date(dueDate),
+      description
+    };
+
+    cardTask.update({
+      params: { card: updated },
+      updateView: () => updateAtom(updated),
+      onSuccess: close,
+      onError: () => setShowToast(true)
+    });
   }
 
-  // Card削除
-  const deleteCard = () => cardTask
-    .delete(laneId, card.id, deleteAtom)
-    .catch(() => setShowToast(true));
+  const deleteCard = () => cardTask.delete({
+    params: { cardId: card.id },
+    updateView: (cardId) => deleteAtom(cardId),
+    onError: () => setShowToast(true)
+  });
 
   return (
     <>
